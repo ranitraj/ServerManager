@@ -12,6 +12,7 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 
 public abstract class ServerService {
@@ -20,6 +21,7 @@ public abstract class ServerService {
     public abstract Collection<Server> getServerList(int pageNumber, int pageLimit);
     public abstract Server getServer(Long id);
     public abstract Server updateServer(Server server);
+    public abstract void updateServerIpAddress(Long id, String ipAddress);
     public abstract Boolean deleteServer(Long id);
 }
 
@@ -67,7 +69,7 @@ class ServerServiceImpl extends ServerService {
             return optionalServer.get();
         } else {
             throw new IllegalStateException(
-                    "Server with id: "+id+" not found in Database"
+                    "Server with id: "+id+" does not exist"
             );
         }
     }
@@ -75,6 +77,34 @@ class ServerServiceImpl extends ServerService {
     @Override
     public Server updateServer(Server server) {
         return null;
+    }
+
+    @Transactional
+    @Override
+    public void updateServerIpAddress(Long id, String ipAddress) {
+        log.info("Updating server with ipAddress: {}", ipAddress);
+        Server curServer = serverRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Server with id: "+id+" does not exist"
+                ));
+
+        // Validation
+        if (ipAddress != null
+                && !ipAddress.isEmpty()
+                && !Objects.equals(curServer.getIpAddress(), ipAddress)) {
+            // Check if new IP address is unique
+            Optional<Server> optionalServer = Optional.ofNullable(
+                    serverRepository.findByIpAddress(ipAddress)
+            );
+            if (optionalServer.isPresent()) {
+                throw new IllegalStateException(
+                        "IP address already taken"
+                );
+            }
+
+            // Update ipAddress using Setter [required when using @Transactional]
+            curServer.setIpAddress(ipAddress);
+        }
     }
 
     @Override
