@@ -12,6 +12,7 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
+import java.util.Optional;
 
 public abstract class ServerService {
     public abstract Server createServer(Server server);
@@ -60,7 +61,15 @@ class ServerServiceImpl extends ServerService {
 
     @Override
     public Server getServer(Long id) {
-        return null;
+        log.info("Getting Server with id: {}", id);
+        Optional<Server> optionalServer = serverRepository.findById(id);
+        if (optionalServer.isPresent()) {
+            return optionalServer.get();
+        } else {
+            throw new IllegalStateException(
+                    "Server with id: "+id+" not found in Database"
+            );
+        }
     }
 
     @Override
