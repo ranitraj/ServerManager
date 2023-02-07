@@ -5,6 +5,7 @@ import com.ranit.server.model.Server;
 import com.ranit.server.repository.ServerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -15,7 +16,7 @@ import java.util.Collection;
 public abstract class ServerService {
     public abstract Server createServer(Server server);
     public abstract Server pingServer(String ipAddress);
-    public abstract Collection<Server> getServerList(int pageLimit);
+    public abstract Collection<Server> getServerList(int pageNumber, int pageLimit);
     public abstract Server getServer(Long id);
     public abstract Server updateServer(Server server);
     public abstract Boolean deleteServer(Long id);
@@ -50,8 +51,11 @@ class ServerServiceImpl extends ServerService {
     }
 
     @Override
-    public Collection<Server> getServerList(int pageLimit) {
-        return null;
+    public Collection<Server> getServerList(int pageNumber, int pageLimit) {
+        log.info("Fetching first "+pageLimit+" Servers");
+        return serverRepository.findAll(
+                PageRequest.of(pageNumber, pageLimit)
+        ).toList();
     }
 
     @Override
