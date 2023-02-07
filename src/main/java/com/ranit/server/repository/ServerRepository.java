@@ -2,7 +2,9 @@ package com.ranit.server.repository;
 
 import com.ranit.server.model.Server;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface ServerRepository extends JpaRepository<Server, Long> {
     /**
      * Naming convention for the functions are extremely important.
