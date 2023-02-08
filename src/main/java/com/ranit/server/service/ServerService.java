@@ -3,6 +3,7 @@ package com.ranit.server.service;
 import com.ranit.server.enumeration.Status;
 import com.ranit.server.model.Server;
 import com.ranit.server.repository.ServerRepository;
+import com.ranit.server.utils.Validation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -12,7 +13,6 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.Optional;
 
 public abstract class ServerService {
@@ -31,6 +31,7 @@ public abstract class ServerService {
 @Slf4j                      // For Logging
 class ServerServiceImpl extends ServerService {
     private final ServerRepository serverRepository;
+    private final Validation validation;
 
     @Override
     public Server createServer(Server server) {
@@ -85,23 +86,10 @@ class ServerServiceImpl extends ServerService {
         log.info("Updating server with ipAddress: {}", ipAddress);
         Server curServer = serverRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException(
-                        "Server with id: "+id+" does not exist"
-                ));
-
-        // Validation
-        if (ipAddress != null
-                && !ipAddress.isEmpty()
-                && !Objects.equals(curServer.getIpAddress(), ipAddress)) {
-            // Check if new IP address is unique
-            Optional<Server> optionalServer = Optional.ofNullable(
-                    serverRepository.findByIpAddress(ipAddress)
-            );
-            if (optionalServer.isPresent()) {
-                throw new IllegalStateException(
-                        "IP address already taken"
+                        "Server with id: "+id+" does not exist")
                 );
-            }
 
+        if (validation.isIpAddressValid(ipAddress, curServer)) {
             // Update ipAddress using Setter [required when using @Transactional]
             curServer.setIpAddress(ipAddress);
         }
